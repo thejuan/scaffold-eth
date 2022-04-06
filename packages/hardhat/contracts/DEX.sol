@@ -106,10 +106,20 @@ contract DEX {
     /**
      * @notice sends $BAL tokens to DEX in exchange for Ether
      */
-    function tokenToEth(uint256 tokenInput)
-        public
-        returns (uint256 ethOutput)
-    {}
+    function tokenToEth(uint256 tokenInput) public returns (uint256 ethOutput) {
+        require(tokenInput > 0, "Balloons Required");
+        uint256 ethReserve = address(this).balance;
+        uint256 token_reserve = token.balanceOf(address(this)).sub(tokenInput);
+        uint256 eth = price(tokenInput, token_reserve, ethReserve);
+        require(
+            token.transferFrom(msg.sender, address(this), tokenInput),
+            "swap failed in token transfer"
+        );
+        (bool sent, ) = msg.sender.call{value: eth}("");
+        require(sent, "swap failed in eth transfer");
+        emit TokenToEthSwap(msg.sender, eth, tokenInput);
+        return eth;
+    }
 
     /**
      * @notice allows deposits of $BAL and $ETH to liquidity pool
