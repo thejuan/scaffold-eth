@@ -14,7 +14,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  */
 contract DEX {
     /* ========== GLOBAL VARIABLES ========== */
-
     using SafeMath for uint256; //outlines use of SafeMath for uint256 variables
     IERC20 token; //instantiates the imported contract
     uint256 public totalLiquidity;
@@ -35,12 +34,22 @@ contract DEX {
     /**
      * @notice Emitted when liquidity provided to DEX and mints LPTs.
      */
-    event LiquidityProvided();
+    event LiquidityProvided(
+        address sender,
+        uint256 liquidityProvided,
+        uint256 eth,
+        uint256 balloons
+    );
 
     /**
      * @notice Emitted when liquidity removed from DEX and decreases LPT count within DEX.
      */
-    event LiquidityRemoved();
+    event LiquidityRemoved(
+        address sender,
+        uint256 liquidityRemoved,
+        uint256 eth,
+        uint256 balloons
+    );
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -127,7 +136,25 @@ contract DEX {
      * NOTE: user has to make sure to give DEX approval to spend their tokens on their behalf by calling approve function prior to this function call.
      * NOTE: Equal parts of both assets will be removed from the user's wallet with respect to the price outlined by the AMM.
      */
-    function deposit() public payable returns (uint256 tokensDeposited) {}
+    function deposit() public payable returns (uint256 tokensDeposited) {
+        uint256 ethReserve = address(this).balance.sub(msg.value);
+        uint256 tokenReserve = token.balanceOf(address(this));
+        uint256 tokensAdded = (msg.value.mul(tokenReserve) / ethReserve).add(1);
+        uint256 liquidityAdded = msg.value.mul(totalLiquidity) / ethReserve;
+        liquidity[msg.sender] = liquidity[msg.sender].add(liquidityAdded);
+        totalLiquidity = totalLiquidity.add(liquidityAdded);
+        require(
+            token.transferFrom(msg.sender, address(this), tokensAdded),
+            "deposit failed in token transfer"
+        );
+        emit LiquidityProvided(
+            msg.sender,
+            liquidityAdded,
+            msg.value,
+            tokensAdded
+        );
+        return tokensAdded;
+    }
 
     /**
      * @notice allows withdrawal of $BAL and $ETH from liquidity pool
@@ -136,5 +163,24 @@ contract DEX {
     function withdraw(uint256 amount)
         public
         returns (uint256 eth_amount, uint256 token_amount)
-    {}
+    {
+        require(
+            liquidity[msg.sender] >= amount,
+            "withdrawal greater than your balance"
+        );
+        uint256 ethReserve = address(this).balance;
+        uint256 tokenReserve = token.balanceOf(address(this));
+        uint256 ethWithdrawn = amount.mul(ethReserve) / totalLiquidity;
+        uint256 tokens = amount.mul(tokenReserve) / totalLiquidity;
+        liquidity[msg.sender] = liquidity[msg.sender].sub(amount);
+        totalLiquidity = totalLiquidity.sub(amount);
+
+        (bool sent, ) = msg.sender.call{value: ethWithdrawn}("");
+        require(sent, "eth transfer failed");
+        require(token.transfer(msg.sender, tokens));
+
+        emit LiquidityRemoved(msg.sender, amount, ethWithdrawn, tokens);
+
+        return (ethWithdrawn, tokens);
+    }
 }

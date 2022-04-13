@@ -427,7 +427,7 @@ function App(props) {
           onClick={() => {
             faucetTx({
               to: address,
-              value: ethers.utils.parseEther("0.01"),
+              value: ethers.utils.parseEther("10"),
             });
             setFaucetClicked(true);
           }}
@@ -469,22 +469,23 @@ function App(props) {
 
         <Switch>
           <Route exact path="/">
-            {/* Uncomment below to view front end */}
-            {/* { readContracts && readContracts.DEX && address && localProvider ?
-                <Dex
-              address={address}
-              tx={tx}
-              writeContracts={writeContracts}
-              localProvider={localProvider}
-              mainnetProvider={mainnetProvider}
-              injectedProvider={localProvider}
-              readContracts={readContracts}
-              blockExplorer={blockExplorer}
-              contractConfig={contractConfig}
-              signer={userSigner}
-              price={price}
-            /> : ""
-             }  */}
+            {readContracts && readContracts.DEX && address && localProvider ? (
+              <Dex
+                address={address}
+                tx={tx}
+                writeContracts={writeContracts}
+                localProvider={localProvider}
+                mainnetProvider={mainnetProvider}
+                injectedProvider={localProvider}
+                readContracts={readContracts}
+                blockExplorer={blockExplorer}
+                contractConfig={contractConfig}
+                signer={userSigner}
+                price={price}
+              />
+            ) : (
+              ""
+            )}
           </Route>
 
           <Route path="/contracts">
