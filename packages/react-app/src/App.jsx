@@ -32,6 +32,7 @@ import externalContracts from "./contracts/external_contracts";
 import Portis from "@portis/web3";
 import Fortmatic from "fortmatic";
 import Authereum from "authereum";
+import DEXEvents from "./components/DEXEvents";
 
 const { ethers } = require("ethers");
 /*
@@ -455,6 +456,16 @@ function App(props) {
               YourContract
             </Link>
           </Menu.Item>
+          <Menu.Item key="/events">
+            <Link
+              onClick={() => {
+                setRoute("/events");
+              }}
+              to="/events"
+            >
+              Events
+            </Link>
+          </Menu.Item>
           <Menu.Item key="/contracts">
             <Link
               onClick={() => {
@@ -486,6 +497,9 @@ function App(props) {
             ) : (
               ""
             )}
+          </Route>
+          <Route path="/events">
+            <DEXEvents readContracts={readContracts} localProvider={localProvider} mainnetProvider={mainnetProvider} />
           </Route>
 
           <Route path="/contracts">

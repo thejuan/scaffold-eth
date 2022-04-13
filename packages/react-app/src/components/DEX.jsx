@@ -176,13 +176,6 @@ export default function Dex(props) {
           </div>
         </Col>
       </Row>
-      <Row>
-        <DEXEvents
-          readContracts={props.readContracts}
-          localProvider={props.localProvider}
-          mainnetProvider={props.mainnetProvider}
-        />
-      </Row>
     </>
   );
 }

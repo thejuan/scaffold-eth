@@ -41,7 +41,8 @@ export default function Events({
           return (
             <List.Item key={item.blockNumber + "_" + item.args.sender + "_" + item.args.purpose}>
               <Address address={item.args[0]} ensProvider={mainnetProvider} fontSize={16} />
-              <div>{item.args[1].toString()}</div>
+              {/** TODO: make renders, idelaly all events in one list */}
+              <div>{item.args.toString()}</div>
             </List.Item>
           );
         }}

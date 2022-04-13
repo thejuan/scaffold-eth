@@ -28,8 +28,8 @@ export default function DEXEvents({ readContracts, localProvider, mainnetProvide
       />
       <Events
         contracts={readContracts}
-        contractName="DEX"
-        eventName="SetPurpose"
+        contractName="Balloons"
+        eventName="Approval"
         localProvider={localProvider}
         mainnetProvider={mainnetProvider}
         startBlock={1}
