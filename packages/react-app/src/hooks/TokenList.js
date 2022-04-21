@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-/*
+/**
   ~ What it does? ~
 
   Gets a tokenlist (see more at https://tokenlists.org/), returning the .tokens only
@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
   ~ Features ~
 
   - Optional - specify chainId to filter by chainId
-*/
+**/
 
 const useTokenList = (tokenListUri, chainId) => {
   const [tokenList, setTokenList] = useState([]);
@@ -32,10 +32,10 @@ const useTokenList = (tokenListUri, chainId) => {
             return t.chainId === chainId;
           });
         } else {
-          _tokenList = tokenListJson;
+          _tokenList = tokenListJson.tokens;
         }
 
-        setTokenList(_tokenList.tokens);
+        setTokenList(_tokenList);
       } catch (e) {
         console.log(e);
       }
