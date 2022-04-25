@@ -144,7 +144,7 @@ function App(props) {
   const contractConfig = { deployedContracts: deployedContracts || {}, externalContracts: externalContracts || {} };
 
   // Load in your local 📝 contract and read a value from it:
-  const readContracts = useContractLoader(localProvider);
+  const readContracts = useContractLoader(localProvider, contractConfig);
 
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
   const writeContracts = useContractLoader(userSigner, contractConfig, localChainId);
@@ -236,7 +236,9 @@ function App(props) {
   //📟 Listen for broadcast events
   const ownerEvents = useEventListener(readContracts, contractName, "Owner", localProvider, 1);
   if (DEBUG) console.log("📟 ownerEvents:", ownerEvents);
-
+  if (!Object.keys(readContracts).length > 0) {
+    return <>Loadgin</>;
+  }
   return (
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
@@ -252,6 +254,15 @@ function App(props) {
       <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">App Home</Link>
+        </Menu.Item>
+        <Menu.Item key="/owners">
+          <Link to="/owners">Owners</Link>
+        </Menu.Item>
+        <Menu.Item key="/create">
+          <Link to="/create">Create</Link>
+        </Menu.Item>
+        <Menu.Item key="/pool">
+          <Link to="/pool">Pool</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>

@@ -18,7 +18,6 @@ export default function FrontPage({
   mainnetProvider,
   blockExplorer,
 }) {
-  const [methodName, setMethodName] = useLocalStorage("addSigner");
   return (
     <div style={{ padding: 32, maxWidth: 750, margin: "auto" }}>
       <div style={{ paddingBottom: 32 }}>
@@ -53,10 +52,16 @@ export default function FrontPage({
         bordered
         dataSource={executeTransactionEvents}
         renderItem={item => {
-
           return (
             <>
-                <TransactionListItem item={item} mainnetProvider={mainnetProvider} blockExplorer={blockExplorer} price={price} readContracts={readContracts} contractName={contractName}/>
+              <TransactionListItem
+                item={item}
+                mainnetProvider={mainnetProvider}
+                blockExplorer={blockExplorer}
+                price={price}
+                readContracts={readContracts}
+                contractName={contractName}
+              />
             </>
           );
         }}

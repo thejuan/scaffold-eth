@@ -13,6 +13,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "hardhat/console.sol";
 
 contract MetaMultiSigWallet is EIP712 {
     using ECDSA for bytes32;
@@ -98,6 +99,18 @@ contract MetaMultiSigWallet is EIP712 {
         signaturesRequired = newSignaturesRequired;
     }
 
+    function getTransactionHash(
+        uint256 deadline,
+        address to,
+        uint256 value,
+        bytes memory data
+    ) public view returns (bytes32) {
+        return
+            _hashTypedDataV4(
+                keccak256(abi.encode(this.chainId, to, value, deadline, data))
+            );
+    }
+
     function executeTransaction(
         address payable to,
         uint256 value,
@@ -109,9 +122,7 @@ contract MetaMultiSigWallet is EIP712 {
             isOwner[msg.sender],
             "executeTransaction: only owners can execute"
         );
-        bytes32 _hash = _hashTypedDataV4(
-            keccak256(abi.encode(to, value, deadline))
-        );
+        bytes32 _hash = this.getTransactionHash(deadline, to, value, data);
         require(
             !executedTransactions[_hash],
             "executeTransaction: replay detected"
@@ -134,10 +145,9 @@ contract MetaMultiSigWallet is EIP712 {
             validSignatures >= signaturesRequired,
             "executeTransaction: not enough valid signatures"
         );
-
-        (bool success, bytes memory result) = to.call{value: value}(data);
+        (bool success, bytes memory result) = to.call{value: value}("");
         require(success, "executeTransaction: tx failed");
-
+        executedTransactions[_hash] = true;
         emit ExecuteTransaction(
             msg.sender,
             to,

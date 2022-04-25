@@ -65,6 +65,7 @@ module.exports = {
 
   networks: {
     localhost: {
+      hardFork: "istanbul",
       url: "http://localhost:8545",
       /*      
         notice no mnemonic here? it will just use account 0 of the hardhat node to deploy
@@ -230,48 +231,40 @@ module.exports = {
       },
     },
     moonbeam: {
-      url: 'https://rpc.api.moonbeam.network',
+      url: "https://rpc.api.moonbeam.network",
       chainId: 1284,
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     moonriver: {
-      url: 'https://rpc.api.moonriver.moonbeam.network',
+      url: "https://rpc.api.moonriver.moonbeam.network",
       chainId: 1285,
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     moonbaseAlpha: {
-      url: 'https://rpc.api.moonbase.moonbeam.network',
+      url: "https://rpc.api.moonbase.moonbeam.network",
       chainId: 1287,
       accounts: {
         mnemonic: mnemonic(),
       },
     },
     moonbeamDevNode: {
-      url: 'http://127.0.0.1:9933',
+      url: "http://127.0.0.1:9933",
       chainId: 1281,
       accounts: {
         mnemonic: mnemonic(),
       },
-    }
+    },
   },
   solidity: {
     compilers: [
       {
         version: "0.8.4",
         settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      {
-        version: "0.6.7",
-        settings: {
+          evmVersion: "istanbul",
           optimizer: {
             enabled: true,
             runs: 200,

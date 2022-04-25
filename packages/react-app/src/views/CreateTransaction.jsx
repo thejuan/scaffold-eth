@@ -3,10 +3,8 @@ import { useHistory } from "react-router-dom";
 import { Button, Select, Input, Spin } from "antd";
 import { parseEther } from "@ethersproject/units";
 import { Address, AddressInput, Balance, EtherInput, Blockie } from "../components";
-import { useContractReader } from "eth-hooks";
+import { LocalStorageTransactionService } from "../services/transaction/TransactionService";
 const { Option } = Select;
-
-const axios = require("axios");
 
 export default function CreateTransaction({
   poolServerUrl,
@@ -19,16 +17,17 @@ export default function CreateTransaction({
   readContracts,
 }) {
   const history = useHistory();
+  //TODO: make context
+  const txService = new LocalStorageTransactionService(
+    readContracts[contractName].address,
+    readContracts[contractName].chainId,
+    console.log,
+  );
 
-  // keep track of a variable from the contract in the local React state:
-  const nonce = useContractReader(readContracts, contractName, "nonce");
   const calldataInputRef = useRef("0x");
-
-  console.log("🤗 nonce:", nonce);
 
   console.log("price", price);
 
-  const [customNonce, setCustomNonce] = useState();
   const [to, setTo] = useLocalStorage("to");
   const [amount, setAmount] = useLocalStorage("amount", "0");
   const [data, setData] = useLocalStorage("data", "0x");
@@ -148,18 +147,9 @@ export default function CreateTransaction({
       */}
       <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, margin: "auto", marginTop: 64 }}>
         <div style={{ margin: 8 }}>
-          <div style={inputStyle}>
-            <Input
-              prefix="#"
-              disabled
-              value={customNonce}
-              placeholder={"" + (nonce ? nonce.toNumber() : "loading...")}
-              onChange={setCustomNonce}
-            />
-          </div>
           <div style={{ margin: 8, padding: 8 }}>
             <Select value={methodName} disabled={selectDisabled} style={{ width: "100%" }} onChange={setMethodName}>
-              //<Option key="transferFunds">transferFunds()</Option>
+              <Option key="transferFunds">transferFunds()</Option>
               <Option disabled={true} key="addSigner">
                 addSigner()
               </Option>
@@ -199,20 +189,14 @@ export default function CreateTransaction({
             style={{ marginTop: 32 }}
             disabled={!isCreateTxnEnabled}
             onClick={async () => {
-              // setData(calldataInputRef.current.state.value)
-              // if (data && data == "0x") {
-              //   setResult("ERROR, Call Data Invalid");
-              //   return;
-              // }
-              console.log("customNonce", customNonce);
-              const nonce = customNonce || (await readContracts[contractName].nonce());
-              console.log("nonce", nonce);
-
+              //TODO: deadline
+              const deadline = new Date().getTime() + 10000000;
+              const parsedAmount = parseEther("" + parseFloat(amount).toFixed(12));
               const newHash = await readContracts[contractName].getTransactionHash(
-                nonce,
+                deadline,
                 to,
-                parseEther("" + parseFloat(amount).toFixed(12)),
-                data,
+                parsedAmount,
+                data || "0x",
               );
               console.log("newHash", newHash);
 
@@ -226,26 +210,23 @@ export default function CreateTransaction({
               console.log("isOwner", isOwner);
 
               if (isOwner) {
-                const res = await axios.post(poolServerUrl, {
+                const added = await txService.add({
                   chainId: localProvider._network.chainId,
                   address: readContracts[contractName].address,
-                  nonce: nonce.toNumber(),
+                  deadline,
                   to,
                   amount,
                   data,
                   hash: newHash,
-                  signatures: [signature],
-                  signers: [recover],
+                  signatures: { [recover]: { signer: recover, signature } },
                 });
                 // IF SIG IS VALUE ETC END TO SERVER AND SERVER VERIFIES SIG IS RIGHT AND IS SIGNER BEFORE ADDING TY
-
-                console.log("RESULT", res.data);
 
                 setTimeout(() => {
                   history.push("/pool");
                 }, 2777);
 
-                setResult(res.data.hash);
+                setResult(added.hash);
                 setTo();
                 setAmount("0");
                 setData("0x");

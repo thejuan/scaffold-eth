@@ -17,13 +17,13 @@ const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, 
       {txnInfo && (
         <div>
           <p>
-            <b>Event Name :</b> {txnInfo.functionFragment.name}
+            <b>Event Name :</b> {txnInfo.functionFragment}
           </p>
           <p>
             <b>Function Signature :</b> {txnInfo.signature}
           </p>
           <h4>Arguments :&nbsp;</h4>
-          {txnInfo.functionFragment.inputs.map((element, index) => {
+          {txnInfo.functionFragment?.inputs.map((element, index) => {
             if (element.type === "address") {
               return (
                 <div

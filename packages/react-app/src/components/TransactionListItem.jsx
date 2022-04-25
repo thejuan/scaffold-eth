@@ -15,7 +15,6 @@ const TransactionListItem = function ({
   children,
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [txnInfo, setTxnInfo] = useState(null);
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -28,7 +27,7 @@ const TransactionListItem = function ({
   console.log("🔥🔥🔥🔥", item);
   let txnData;
   try {
-    txnData = readContracts[contractName].interface.parseTransaction(item);
+    txnData = item; //readContracts[contractName].interface.parseTransaction(item);
   } catch (error) {
     console.log("ERROR", error);
   }
@@ -57,14 +56,13 @@ const TransactionListItem = function ({
           >
             <p>
               <b>Event Name :&nbsp;</b>
-              {txnData.functionFragment.name}&nbsp;
+              {txnData.functionFragment}&nbsp;
             </p>
             <p>
               <b>Addressed to :&nbsp;</b>
-              {txnData.args[0]}
+              {txnData.args}
             </p>
           </div>
-          {<b style={{ padding: 16 }}>#{typeof item.nonce === "number" ? item.nonce : item.nonce.toNumber()}</b>}
           <span>
             <Blockie size={4} scale={8} address={item.hash} /> {item.hash.substr(0, 6)}
           </span>
