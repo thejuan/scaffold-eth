@@ -13,14 +13,6 @@ export class LocalStorageTransactionService {
     return Object.values(this.#getTransactions());
   }
 
-  #getTransactions() {
-    if (!localStorage.getItem(this.contractId)) {
-      localStorage.setItem(this.contractId, JSON.stringify({}));
-    }
-    const value = localStorage.getItem(this.contractId);
-    return JSON.parse(value);
-  }
-
   async add(signedTransaction) {
     this.log("🛰 Adding Transaction to " + this.contractId);
     const transactions = this.#getTransactions();
@@ -41,5 +33,13 @@ export class LocalStorageTransactionService {
     const transactions = this.#getTransactions();
     delete transactions[hash];
     localStorage.setItem(this.contractId, JSON.stringify(transactions));
+  }
+
+  #getTransactions() {
+    if (!localStorage.getItem(this.contractId)) {
+      localStorage.setItem(this.contractId, JSON.stringify({}));
+    }
+    const value = localStorage.getItem(this.contractId);
+    return JSON.parse(value);
   }
 }
