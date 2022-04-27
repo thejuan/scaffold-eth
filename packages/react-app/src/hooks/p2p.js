@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Peer from "peerjs";
 //inspo from https://github.com/madou/react-peer
 
-const mapOwnerEventsToCurrentOwners = (ownerEvents, currentAddress) => {
+export const mapOwnerEventsToCurrentOwners = (ownerEvents, currentAddress) => {
   return Object.keys(
     ownerEvents.reduce((owners, e) => {
       if (e.added) {
@@ -15,7 +15,7 @@ const mapOwnerEventsToCurrentOwners = (ownerEvents, currentAddress) => {
   ).filter(o => o !== currentAddress);
 };
 
-const useReceivePeerState = ({ peerBrokerIds, client }) => {
+export const useReceivePeerState = ({ peerBrokerIds, client }) => {
   const [state, setState] = useState();
   const [isConnected, setIsConnected] = useState({});
 
@@ -43,23 +43,23 @@ const useReceivePeerState = ({ peerBrokerIds, client }) => {
         });
       });
 
-      // connection.on("close", () => {
-      //   console.log(`P2P: Connection to ${id} closed`);
-      //   setIsConnected(prevState => ({ ...prevState, [id]: false }));
-      // });
+      connection.on("close", () => {
+        console.log(`P2P: Connection to ${id} closed`);
+        setIsConnected(prevState => ({ ...prevState, [id]: false }));
+      });
 
       connection.on("error", err => console.error(`P2P: Error from ${id}`, err));
     }
 
-    // return () => {
-    //   setIsConnected({});
-    // };
+    return () => {
+      setIsConnected({});
+    };
   }, [JSON.stringify(peerBrokerIds), client]);
 
   return [state, isConnected];
 };
 
-const usePeerState = ({ initialState, client }) => {
+export const usePeerState = ({ initialState, client }) => {
   const [connections, setConnections] = useState([]);
   const [state, setState] = useState(initialState);
   // We useRef to get around useLayoutEffect's closure only having access
@@ -94,7 +94,7 @@ const usePeerState = ({ initialState, client }) => {
   ];
 };
 
-const useP2P = ({ contractAddress, address }) => {
+export const useP2P = ({ contractAddress, address }) => {
   const [peer, setPeer] = useState(undefined);
   useEffect(() => {
     if (contractAddress && address) {
@@ -115,51 +115,4 @@ const useP2P = ({ contractAddress, address }) => {
   }, [contractAddress, address]);
 
   return peer;
-};
-
-export const useTransactions = ({ contractAddress, address, ownerEvents }) => {
-  const peerIds = mapOwnerEventsToCurrentOwners(ownerEvents, address).map(
-    ownerAddress => `${contractAddress}-${ownerAddress}`,
-  );
-  const client = useP2P({ contractAddress, address });
-  const [peerState, isConnected] = useReceivePeerState({ peerBrokerIds: peerIds, client });
-  const [state, setState] = usePeerState({ initialState: {}, client });
-
-  useEffect(() => {
-    if (!peerState) {
-      return;
-    }
-    console.log(`P2P: Merging State`, [state, peerState]);
-    // Naive sync merge
-    let changed = false;
-    for (const peerTxs of Object.values(peerState)) {
-      for (const [id, tx] of Object.entries(peerTxs)) {
-        if (!state[id]) {
-          state[id] = tx;
-          changed = true;
-        } else {
-          for (const signature of Object.values(tx.signatures)) {
-            if (!state[id].signatures[signature.signer]) {
-              state[id].signatures[signature.signer] = signature;
-              changed = true;
-            }
-          }
-        }
-      }
-    }
-    if (changed) {
-      // TODO: Validate state
-      setState(state);
-    }
-  }, [JSON.stringify(peerState), JSON.stringify(state)]);
-
-  return {
-    owners: Object.fromEntries(
-      peerIds.map(id => {
-        return [id.split("-")[1], Boolean(isConnected?.[id])];
-      }),
-    ),
-    transactions: state,
-    setTransactions: setState,
-  };
 };

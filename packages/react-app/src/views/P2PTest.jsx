@@ -1,4 +1,4 @@
-import { useTransactions } from "../hooks";
+import { useTransactions } from "../context";
 
 export default function P2PTest({ contractAddress, ownerEvents, address }) {
   const { owners, transactions, setTransactions } = useTransactions({

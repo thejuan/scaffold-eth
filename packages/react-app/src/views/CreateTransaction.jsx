@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import { Button, Select, Input, Spin } from "antd";
 import { parseEther } from "@ethersproject/units";
 import { Address, AddressInput, Balance, EtherInput, Blockie } from "../components";
-import { LocalStorageTransactionService } from "../services/transaction/TransactionService";
+import { useTransactions } from "../context";
 const { Option } = Select;
 
 export default function CreateTransaction({
@@ -17,12 +17,7 @@ export default function CreateTransaction({
   readContracts,
 }) {
   const history = useHistory();
-  //TODO: make context
-  const txService = new LocalStorageTransactionService(
-    readContracts[contractName].address,
-    readContracts[contractName].chainId,
-    console.log,
-  );
+  const { transactions, setTransactions } = useTransactions();
 
   const calldataInputRef = useRef("0x");
 
@@ -189,14 +184,15 @@ export default function CreateTransaction({
             style={{ marginTop: 32 }}
             disabled={!isCreateTxnEnabled}
             onClick={async () => {
-              //TODO: deadline
+              //TODO: deadline picker
               const deadline = new Date().getTime() + 10000000;
               const parsedAmount = parseEther("" + parseFloat(amount).toFixed(12));
+              const formattedData = data || "0x";
               const newHash = await readContracts[contractName].getTransactionHash(
                 deadline,
                 to,
                 parsedAmount,
-                data || "0x",
+                formattedData,
               );
               console.log("newHash", newHash);
 
@@ -210,15 +206,19 @@ export default function CreateTransaction({
               console.log("isOwner", isOwner);
 
               if (isOwner) {
-                const added = await txService.add({
+                const added = {
                   chainId: localProvider._network.chainId,
                   address: readContracts[contractName].address,
                   deadline,
                   to,
                   amount,
-                  data,
+                  data: formattedData,
                   hash: newHash,
                   signatures: { [recover]: { signer: recover, signature } },
+                };
+                setTransactions({
+                  ...transactions,
+                  [newHash]: added,
                 });
                 // IF SIG IS VALUE ETC END TO SERVER AND SERVER VERIFIES SIG IS RIGHT AND IS SIGNER BEFORE ADDING TY
                 setTimeout(() => {

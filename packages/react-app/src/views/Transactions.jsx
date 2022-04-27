@@ -1,10 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, List, Spin } from "antd";
 import { parseEther } from "@ethersproject/units";
 import { ethers } from "ethers";
 import { TransactionListItem } from "../components";
-import { usePoller } from "../hooks";
-import { LocalStorageTransactionService } from "../services/transaction/TransactionService";
+import { useTransactions } from "../context";
+
+const filterInvalidTransactions = async ({ txs, contract }) => {
+  const newTransactions = [];
+  for (const trans of txs) {
+    if (trans.deadline < new Date().getTime()) {
+      console.log(`Transaction expired {${trans.deadline} < ${new Date().getTime()}}`, trans);
+      continue;
+    }
+
+    const validSignatures = [];
+    for (const s of Object.values(trans.signatures)) {
+      const signer = await contract.recover(trans.hash, s.signature);
+      const isOwner = await contract.isOwner(signer);
+      if (signer && isOwner) {
+        validSignatures.push({ signer, signature: s.signature });
+      } else {
+        console.warn(`Removed invalid transaction`, trans);
+      }
+    }
+    const update = { ...trans, validSignatures };
+    newTransactions.push(update);
+  }
+  return newTransactions;
+};
 
 export default function Transactions({
   contractName,
@@ -19,42 +42,14 @@ export default function Transactions({
   writeContracts,
   blockExplorer,
 }) {
-  const txService = new LocalStorageTransactionService(
-    readContracts[contractName].address,
-    readContracts[contractName].chainId,
-    console.log,
-  );
-  const [transactions, setTransactions] = useState();
-
-  //move to transactions hook
-  usePoller(() => {
-    const getTransactions = async () => {
-      if (true) console.log("🛰 Requesting Transaction List");
-      const txs = await txService.list();
-      const newTransactions = [];
-      for (const trans of txs) {
-        if (trans.deadline < new Date().getTime()) {
-          console.log(`Transaction expired {${trans.deadline} < ${new Date().getTime()}}`, trans);
-          continue;
-        }
-
-        const validSignatures = [];
-        for (const s of Object.values(trans.signatures)) {
-          const signer = await readContracts[contractName].recover(trans.hash, s.signature);
-          const isOwner = await readContracts[contractName].isOwner(signer);
-          if (signer && isOwner) {
-            validSignatures.push({ signer, signature: s.signature });
-          }
-        }
-        const update = { ...trans, validSignatures };
-        // console.log("update",update)
-        newTransactions.push(update);
-      }
-      setTransactions(newTransactions);
-      console.log("Loaded", newTransactions.length);
-    };
-    if (readContracts) getTransactions();
-  }, 3777);
+  const contract = readContracts[contractName];
+  const { transactions, setTransactions } = useTransactions();
+  const [validTxs, setValidTxns] = useState([]);
+  useEffect(() => {
+    filterInvalidTransactions({ txs: Object.values(transactions), contract })
+      .then(t => setValidTxns(t))
+      .catch(console.error);
+  }, [transactions, contract]);
 
   const getSortedSigList = async (allSigs, newHash) => {
     console.log("allSigs", allSigs);
@@ -91,7 +86,7 @@ export default function Transactions({
     return <Spin />;
   }
 
-  console.log("transactions", transactions);
+  console.log("transactions", validTxs);
 
   return (
     <div style={{ maxWidth: 750, margin: "auto", marginTop: 32, marginBottom: 32 }}>
@@ -101,7 +96,7 @@ export default function Transactions({
 
       <List
         bordered
-        dataSource={transactions}
+        dataSource={validTxs}
         renderItem={item => {
           console.log("ITE88888M", item);
 
@@ -142,10 +137,8 @@ export default function Transactions({
 
                   if (isOwner) {
                     item.signatures[recover] = { signer: recover, signature };
-                    await txService.add(item);
+                    setTransactions({ ...transactions, [item.hash]: item });
                   }
-
-                  // tx( writeContracts[contractName].executeTransaction(item.to,parseEther(""+parseFloat(item.amount).toFixed(12)), item.data, item.signatures))
                 }}
                 type="secondary"
               >
@@ -175,8 +168,8 @@ export default function Transactions({
                       finalSigList,
                     ),
                   );
-
-                  txService.remove(item.hash);
+                  delete transactions[item.hash];
+                  setTransactions(transactions);
                 }}
                 type={hasEnoughSignatures ? "primary" : "secondary"}
               >

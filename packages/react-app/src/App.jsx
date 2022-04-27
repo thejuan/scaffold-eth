@@ -26,6 +26,7 @@ import externalContracts from "./contracts/external_contracts";
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import { Transactions, Owners, FrontPage, CreateTransaction } from "./views";
+import { TransactionsProvider } from "./context/TransactionsContext";
 const { ethers } = require("ethers");
 /*
     Welcome to 🏗 scaffold-eth !
@@ -255,10 +256,8 @@ function App(props) {
       <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">App Home</Link>
-        </Menu.Item>{" "}
-        <Menu.Item key="/p2p">
-          <Link to="/p2p">P2P</Link>
         </Menu.Item>
+
         <Menu.Item key="/owners">
           <Link to="/owners">Owners</Link>
         </Menu.Item>
@@ -266,98 +265,106 @@ function App(props) {
           <Link to="/create">Create</Link>
         </Menu.Item>
         <Menu.Item key="/pool">
-          <Link to="/pool">Pool</Link>
+          <Link to="/pool">Transactions</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
-          <Link to="/debug">Debug Contracts</Link>
+          <Link to="/debug">Contracts</Link>
         </Menu.Item>
       </Menu>
+      <TransactionsProvider
+        address={address}
+        contractAddress={readContracts[contractName].address}
+        ownerEvents={ownerEvents}
+      >
+        <Switch>
+          <Route exact path="/">
+            <FrontPage
+              executeTransactionEvents={executeTransactionEvents}
+              contractName={contractName}
+              localProvider={localProvider}
+              readContracts={readContracts}
+              price={price}
+              mainnetProvider={mainnetProvider}
+              blockExplorer={blockExplorer}
+            />
+          </Route>
 
-      <Switch>
-        <Route exact path="/">
-          <FrontPage
-            executeTransactionEvents={executeTransactionEvents}
-            contractName={contractName}
-            localProvider={localProvider}
-            readContracts={readContracts}
-            price={price}
-            mainnetProvider={mainnetProvider}
-            blockExplorer={blockExplorer}
-          />
-        </Route>
+          <Route exact path="/owners">
+            <Owners
+              contractName={contractName}
+              address={address}
+              userProvider={userProvider}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+              blockExplorer={blockExplorer}
+              ownerEvents={ownerEvents}
+              signaturesRequired={signaturesRequired}
+            />
+          </Route>
 
-        <Route exact path="/owners">
-          <Owners
-            contractName={contractName}
-            address={address}
-            userProvider={userProvider}
-            mainnetProvider={mainnetProvider}
-            localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
-            price={price}
-            tx={tx}
-            writeContracts={writeContracts}
-            readContracts={readContracts}
-            blockExplorer={blockExplorer}
-            ownerEvents={ownerEvents}
-            signaturesRequired={signaturesRequired}
-          />
-        </Route>
-
-        <Route exact path="/p2p">
-          <P2PTest contractAddress={readContracts[contractName].address} address={address} ownerEvents={ownerEvents} />
-        </Route>
-        <Route path="/create">
-          <CreateTransaction
-            poolServerUrl={poolServerUrl}
-            contractName={contractName}
-            address={address}
-            userProvider={userProvider}
-            mainnetProvider={mainnetProvider}
-            localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
-            price={price}
-            tx={tx}
-            writeContracts={writeContracts}
-            readContracts={readContracts}
-          />
-        </Route>
-        <Route path="/pool">
-          <Transactions
-            poolServerUrl={poolServerUrl}
-            contractName={contractName}
-            address={address}
-            userProvider={userProvider}
-            mainnetProvider={mainnetProvider}
-            localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
-            price={price}
-            tx={tx}
-            writeContracts={writeContracts}
-            readContracts={readContracts}
-            blockExplorer={blockExplorer}
-            signaturesRequired={signaturesRequired}
-          />
-        </Route>
-        <Route exact path="/debug">
-          {/*
+          <Route exact path="/p2p">
+            <P2PTest
+              contractAddress={readContracts[contractName].address}
+              address={address}
+              ownerEvents={ownerEvents}
+            />
+          </Route>
+          <Route path="/create">
+            <CreateTransaction
+              poolServerUrl={poolServerUrl}
+              contractName={contractName}
+              address={address}
+              userProvider={userProvider}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+            />
+          </Route>
+          <Route path="/pool">
+            <Transactions
+              poolServerUrl={poolServerUrl}
+              contractName={contractName}
+              address={address}
+              userProvider={userProvider}
+              mainnetProvider={mainnetProvider}
+              localProvider={localProvider}
+              yourLocalBalance={yourLocalBalance}
+              price={price}
+              tx={tx}
+              writeContracts={writeContracts}
+              readContracts={readContracts}
+              blockExplorer={blockExplorer}
+              signaturesRequired={signaturesRequired}
+            />
+          </Route>
+          <Route exact path="/debug">
+            {/*
                 🎛 this scaffolding is full of commonly used components
                 this <Contract/> component will automatically parse your ABI
                 and give you a form to interact with it locally
             */}
 
-          <Contract
-            name="MetaMultiSigWallet"
-            price={price}
-            signer={userSigner}
-            provider={localProvider}
-            address={address}
-            blockExplorer={blockExplorer}
-            contractConfig={contractConfig}
-          />
-        </Route>
-      </Switch>
-
+            <Contract
+              name="MetaMultiSigWallet"
+              price={price}
+              signer={userSigner}
+              provider={localProvider}
+              address={address}
+              blockExplorer={blockExplorer}
+              contractConfig={contractConfig}
+            />
+          </Route>
+        </Switch>
+      </TransactionsProvider>
       <ThemeSwitch />
 
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
