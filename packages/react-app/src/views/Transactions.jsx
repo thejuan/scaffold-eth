@@ -44,7 +44,7 @@ export default function Transactions({
 }) {
   const contract = readContracts[contractName];
   const { transactions, setTransactions } = useTransactions();
-  const [validTxs, setValidTxns] = useState([]);
+  const [validTxs, setValidTxns] = useState(Object.values(transactions));
   useEffect(() => {
     filterInvalidTransactions({ txs: Object.values(transactions), contract })
       .then(t => setValidTxns(t))
@@ -94,8 +94,6 @@ export default function Transactions({
         bordered
         dataSource={validTxs}
         renderItem={item => {
-          console.log("ITE88888M", item);
-
           const signatures = Object.values(item.signatures).map(s => s.signature);
           const hasSigned = item.signatures[address];
           const hasEnoughSignatures = signatures.length >= signaturesRequired.toNumber();

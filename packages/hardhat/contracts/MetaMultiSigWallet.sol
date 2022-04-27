@@ -145,7 +145,7 @@ contract MetaMultiSigWallet is EIP712 {
             validSignatures >= signaturesRequired,
             "executeTransaction: not enough valid signatures"
         );
-        (bool success, bytes memory result) = to.call{value: value}("");
+        (bool success, bytes memory result) = to.call{value: value}(data);
         require(success, "executeTransaction: tx failed");
         executedTransactions[_hash] = true;
         emit ExecuteTransaction(
