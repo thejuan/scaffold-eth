@@ -90,10 +90,6 @@ export default function Transactions({
 
   return (
     <div style={{ maxWidth: 750, margin: "auto", marginTop: 32, marginBottom: 32 }}>
-      <h1>
-        <b style={{ padding: 16 }}>#{nonce ? nonce.toNumber() : <Spin />}</b>
-      </h1>
-
       <List
         bordered
         dataSource={validTxs}

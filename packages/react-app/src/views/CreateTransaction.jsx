@@ -216,6 +216,7 @@ export default function CreateTransaction({
                   hash: newHash,
                   signatures: { [recover]: { signer: recover, signature } },
                 };
+                console.log(`Adding new transaction`, added);
                 setTransactions({
                   ...transactions,
                   [newHash]: added,

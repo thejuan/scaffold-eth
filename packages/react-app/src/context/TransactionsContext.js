@@ -15,8 +15,8 @@ export const TransactionsProvider = ({ address, contractAddress, ownerEvents, ch
   });
 
   const setTransactions = txs => {
-    setState(state);
-    localStorage.setItem(storageKey, JSON.stringify(state));
+    setState(txs);
+    localStorage.setItem(storageKey, JSON.stringify(txs));
   };
 
   useEffect(() => {
