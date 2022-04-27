@@ -7,7 +7,7 @@ import { Link, Route, Switch, useLocation } from "react-router-dom";
 import "./App.css";
 import { useUserProvider, useStaticJsonRPC } from "./hooks";
 import { useEventListener } from "./hooks";
-
+import P2PTest from "./views/P2PTest";
 import {
   Account,
   Contract,
@@ -239,6 +239,7 @@ function App(props) {
   if (!Object.keys(readContracts).length > 0) {
     return <>Loadgin</>;
   }
+  console.log(`Re-rendering whole app`);
   return (
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
@@ -254,6 +255,9 @@ function App(props) {
       <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">App Home</Link>
+        </Menu.Item>{" "}
+        <Menu.Item key="/p2p">
+          <Link to="/p2p">P2P</Link>
         </Menu.Item>
         <Menu.Item key="/owners">
           <Link to="/owners">Owners</Link>
@@ -298,6 +302,10 @@ function App(props) {
             ownerEvents={ownerEvents}
             signaturesRequired={signaturesRequired}
           />
+        </Route>
+
+        <Route exact path="/p2p">
+          <P2PTest contractAddress={readContracts[contractName].address} address={address} ownerEvents={ownerEvents} />
         </Route>
         <Route path="/create">
           <CreateTransaction

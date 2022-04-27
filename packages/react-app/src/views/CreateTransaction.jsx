@@ -221,7 +221,6 @@ export default function CreateTransaction({
                   signatures: { [recover]: { signer: recover, signature } },
                 });
                 // IF SIG IS VALUE ETC END TO SERVER AND SERVER VERIFIES SIG IS RIGHT AND IS SIGNER BEFORE ADDING TY
-
                 setTimeout(() => {
                   history.push("/pool");
                 }, 2777);

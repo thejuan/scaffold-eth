@@ -1,10 +1,91 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Select, Button, List, Divider, Input, Card, DatePicker, Slider, Switch, Progress, Spin } from "antd";
 import { Address, AddressInput, Balance, Blockie } from "../components";
 import { useLocalStorage } from "../hooks";
-import Peer from "peerjs";
 const { Option } = Select;
+
+/** 
+export const useP2P = ({ walletAddress, contractAddress, ownersWalletAddresses }) => {
+  
+  const [peers, setPeers] = useState({});
+
+  const findPeer = useCallback(ownerAddress => peers[`${contractAddress}-${ownerAddress}`], [peers, contractAddress]);
+  const listPeers = useCallback(() => Object.values(peers), [peers]);
+  const addPeer = useCallback(
+    (ownerAddress, conn) => {
+      setPeers({ ...peers, [`${contractAddress}-${ownerAddress}`]: conn });
+    },
+    [peers, contractAddress],
+  );
+  const removePeer = useCallback(
+    ownerAddress => {
+      const p = { ...peers };
+      delete p[`${contractAddress}-${ownerAddress}`];
+      setPeers(p);
+    },
+    [peers, contractAddress],
+  );
+
+  const connect = useCallback(
+    ownerAddress => {
+      const conn = client.connect(`${contractAddress}-${ownerAddress}`);
+      if (conn) {
+        console.log(`P2P: Setting up listeners for ${ownerAddress}`);
+        conn.on("open", () => {
+          console.log(`P2P:Connected to ${ownerAddress}`);
+          addPeer(ownerAddress, conn);
+        });
+        conn.on("close", () => {
+          console.log(`P2P: Connected to ${ownerAddress} closed`);
+          removePeer(ownerAddress);
+        });
+        conn.on("error", err => {
+          console.error(`P2P:Connection with ${ownerAddress} error`, err);
+        });
+      }
+    },
+    [client, addPeer, removePeer, contractAddress],
+  );
+  
+
+  return {
+    client,
+    peers: useMemo(
+      () => ({ listPeers, connect, findPeer, addPeer, removePeer }),
+      [listPeers, connect, findPeer, addPeer, removePeer],
+    ),
+  };
+};
+
+const useConnectWithOwners = ({ peers, ownerAddresses }) => {
+  useEffect(() => {
+    if (peers) {
+      for (const ownerAddress of ownerAddresses) {
+        const ownerPeerId = ownerAddress;
+        if (!peers.findPeer(ownerAddress)) {
+          console.log(`P2P: Connecting to ${ownerPeerId}`);
+          peers.connect(ownerPeerId);
+        }
+      }
+    }
+  }, [peers, ownerAddresses]);
+};
+
+*/
+
+const mapOwnerEventsToCurrentOwners = ownerEvents => {
+  return Object.keys(
+    ownerEvents.reduce((owners, e) => {
+      if (e.added) {
+        owners[e.owner] = e;
+      } else {
+        delete owners[e.owner];
+      }
+      return owners;
+    }, {}),
+  );
+};
 
 export default function Owners({
   contractName,
@@ -17,53 +98,6 @@ export default function Owners({
 }) {
   const history = useHistory();
   const contractAddress = readContracts[contractName].address;
-  const [p2p, setP2P] = useState();
-  const isOpen = p2p && p2p.open;
-  useEffect(() => {
-    if (address) {
-      const peerId = `${contractAddress}-${address}`;
-      console.log(`P2P: Connecting as ${peerId}`);
-      const peer = new Peer(peerId);
-      setP2P(peer);
-      peer.on("open", () => {
-        console.log("P2P: Connected", peer);
-      });
-      peer.on("error", err => {
-        console.error("P2P: Error", err);
-      });
-      peer.on("disconnected", () => {
-        console.warn("P2P: Disconnected");
-      });
-      peer.on("connection", conn => {
-        console.log(`P2P: Connection from`, conn);
-      });
-    }
-  }, [contractAddress, address]);
-
-  useEffect(() => {
-    if (p2p && isOpen) {
-      //TODO: filter owners who are still owners
-      for (const ownerEvent of ownerEvents) {
-        const ownerAddress = ownerEvent[0];
-        if (ownerAddress === address || !ownerAddress) continue;
-        const ownerPeerId = `${contractAddress}-${ownerAddress}`;
-        console.log(`P2P: Connectig to ${ownerPeerId}`);
-        const conn = p2p.connect(ownerPeerId);
-        if (conn) {
-          console.log(`P2P: Setting up listeners for ${ownerPeerId}`);
-          conn.on("open", () => {
-            console.log(`P2P:Connected to ${ownerPeerId}`);
-          });
-          conn.on("close", () => {
-            console.log(`P2P:Connected to ${ownerPeerId} closed`);
-          });
-          conn.on("error", err => {
-            console.error(`P2P:Connection with ${ownerPeerId} error`, err);
-          });
-        }
-      }
-    }
-  }, [p2p, ownerEvents, contractAddress, address, isOpen]);
 
   const [to, setTo] = useLocalStorage("to");
   const [amount, setAmount] = useLocalStorage("amount", "0");
@@ -96,11 +130,7 @@ export default function Owners({
                     fontSize={32}
                   />
                 )}
-                <div style={{ padding: 16 }}>
-                  {item[0] === address || p2p?.connections[`${contractAddress}-${item[0]}`]?.find(c => c.open)
-                    ? "🌐"
-                    : "🚫"}
-                </div>
+                {/**  <div style={{ padding: 16 }}>{item[0] === address || peer?.open ? "🌐" : "🚫"}</div> */}
               </List.Item>
             );
           }
