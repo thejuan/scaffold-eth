@@ -33,7 +33,7 @@ export default function Transactions({
   contractName,
   signaturesRequired,
   address,
-  nonce,
+  abiDecoder,
   userProvider,
   mainnetProvider,
   price,
@@ -101,6 +101,7 @@ export default function Transactions({
           return (
             <TransactionListItem
               item={item}
+              abiDecoder={abiDecoder}
               mainnetProvider={mainnetProvider}
               blockExplorer={blockExplorer}
               price={price}
@@ -153,7 +154,7 @@ export default function Transactions({
 
                   const [finalSigList] = await getSortedSigList(signatures, newHash);
 
-                  await tx(
+                  const result = await tx(
                     writeContracts[contractName].executeTransaction(
                       item.to,
                       parseEther("" + parseFloat(item.amount).toFixed(12)),
@@ -162,6 +163,7 @@ export default function Transactions({
                       finalSigList,
                     ),
                   );
+                  console.log("TX Result", result);
                   delete transactions[item.hash];
                   setTransactions(transactions);
                 }}

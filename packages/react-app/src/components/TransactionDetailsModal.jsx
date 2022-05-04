@@ -17,13 +17,10 @@ const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, 
       {txnInfo && (
         <div>
           <p>
-            <b>Event Name :</b> {txnInfo.functionFragment}
-          </p>
-          <p>
-            <b>Function Signature :</b> {txnInfo.signature}
+            <b>Event Name :</b> {txnInfo.name}
           </p>
           <h4>Arguments :&nbsp;</h4>
-          {txnInfo.functionFragment?.inputs.map((element, index) => {
+          {txnInfo.params?.map((element, index) => {
             if (element.type === "address") {
               return (
                 <div
@@ -31,7 +28,7 @@ const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, 
                   style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "left" }}
                 >
                   <b>{element.name} :&nbsp;</b>
-                  <Address fontSize={16} address={txnInfo.args[index]} ensProvider={mainnetProvider} />
+                  <Address fontSize={16} address={element.value} ensProvider={mainnetProvider} />
                 </div>
               );
             }
@@ -41,11 +38,11 @@ const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, 
                   {element.name === "value" ? (
                     <>
                       <b>{element.name} : </b>{" "}
-                      <Balance fontSize={16} balance={txnInfo.args[index]} dollarMultiplier={price} />{" "}
+                      <Balance fontSize={16} balance={element.value} dollarMultiplier={price} />{" "}
                     </>
                   ) : (
                     <>
-                      <b>{element.name} : </b> {txnInfo.args[index] && txnInfo.args[index].toNumber()}
+                      <b>{element.name} : </b> {element.value}
                     </>
                   )}
                 </p>
@@ -56,6 +53,12 @@ const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, 
             <b>SigHash : &nbsp;</b>
             {txnInfo.sighash}
           </p>
+          {txnInfo.succeeded !== undefined && (
+            <p>
+              <b>Succeeded : &nbsp;</b>
+              {txnInfo.succeeded.toString()}
+            </p>
+          )}
         </div>
       )}
     </Modal>

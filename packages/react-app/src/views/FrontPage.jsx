@@ -12,6 +12,7 @@ const axios = require("axios");
 export default function FrontPage({
   executeTransactionEvents,
   contractName,
+  abiDecoder,
   localProvider,
   readContracts,
   price,
@@ -56,6 +57,7 @@ export default function FrontPage({
             <>
               <TransactionListItem
                 item={item}
+                abiDecoder={abiDecoder}
                 mainnetProvider={mainnetProvider}
                 blockExplorer={blockExplorer}
                 price={price}

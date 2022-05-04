@@ -2,18 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import Peer from "peerjs";
 //inspo from https://github.com/madou/react-peer
 
-export const mapOwnerEventsToCurrentOwners = (ownerEvents, currentAddress) => {
-  return Object.keys(
-    ownerEvents.reduce((owners, e) => {
-      if (e.added) {
-        owners[e.owner] = e;
-      } else {
-        delete owners[e.owner];
-      }
-      return owners;
-    }, {}),
-  ).filter(o => o !== currentAddress);
-};
 
 export const useReceivePeerState = ({ peerBrokerIds, client }) => {
   const [state, setState] = useState();

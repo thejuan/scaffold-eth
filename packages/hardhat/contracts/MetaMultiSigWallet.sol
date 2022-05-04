@@ -26,12 +26,13 @@ contract MetaMultiSigWallet is EIP712 {
         bytes data,
         uint256 deadline,
         bytes32 hash,
+        bool succeeded,
         bytes result
     );
     event Owner(address indexed owner, bool added);
     mapping(address => bool) public isOwner;
     uint256 public signaturesRequired;
-    mapping(bytes32 => bool) executedTransactions;
+    mapping(bytes32 => bool) public executedTransactions;
     uint256 public chainId;
 
     constructor(
@@ -117,7 +118,7 @@ contract MetaMultiSigWallet is EIP712 {
         uint256 deadline,
         bytes memory data,
         bytes[] memory signatures
-    ) public returns (bytes memory) {
+    ) public returns (bool succeded, bytes memory) {
         require(
             isOwner[msg.sender],
             "executeTransaction: only owners can execute"
@@ -145,9 +146,11 @@ contract MetaMultiSigWallet is EIP712 {
             validSignatures >= signaturesRequired,
             "executeTransaction: not enough valid signatures"
         );
-        (bool success, bytes memory result) = to.call{value: value}(data);
-        require(success, "executeTransaction: tx failed");
+
+        //Set first to prevent re-entrancy
         executedTransactions[_hash] = true;
+        (bool success, bytes memory result) = to.call{value: value}(data);
+
         emit ExecuteTransaction(
             msg.sender,
             to,
@@ -155,9 +158,10 @@ contract MetaMultiSigWallet is EIP712 {
             data,
             deadline,
             _hash,
+            success,
             result
         );
-        return result;
+        return (success, result);
     }
 
     function recover(bytes32 _hash, bytes memory _signature)

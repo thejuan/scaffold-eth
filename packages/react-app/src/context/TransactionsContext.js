@@ -1,12 +1,13 @@
 import { useEffect, createContext, useContext } from "react";
-import { mapOwnerEventsToCurrentOwners, useP2P, useReceivePeerState, usePeerState } from "../hooks";
+import { useP2P, useReceivePeerState, usePeerState } from "../hooks";
+import { useCurrentOwners } from "../hooks/useCurrentOwners";
 export const TransactionContext = createContext();
 
 export const TransactionsProvider = ({ address, contractAddress, ownerEvents, children }) => {
   const storageKey = `txns-${contractAddress}`;
-  const peerIds = mapOwnerEventsToCurrentOwners(ownerEvents, address).map(
-    ownerAddress => `${contractAddress}-${ownerAddress}`,
-  );
+  const peerIds = useCurrentOwners({ ownerEvents })
+    ?.filter(o => o !== address)
+    .map(ownerAddress => `${contractAddress}-${ownerAddress}`);
   const client = useP2P({ contractAddress, address });
   const [peerState, isConnected] = useReceivePeerState({ peerBrokerIds: peerIds, client });
   const [state, setState, connections] = usePeerState({

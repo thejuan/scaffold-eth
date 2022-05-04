@@ -6,3 +6,4 @@ export { default as usePoller } from "./Poller";
 export { default as useUserProvider } from "./UserProvider";
 export * from "./useContractConfig";
 export * from "./p2p";
+export * from "./useCurrentOwners";

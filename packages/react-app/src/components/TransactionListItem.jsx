@@ -5,15 +5,7 @@ import { Address, Balance, Blockie, TransactionDetailsModal } from "../component
 import { EllipsisOutlined } from "@ant-design/icons";
 import { parseEther, formatEther } from "@ethersproject/units";
 
-const TransactionListItem = function ({
-  item,
-  mainnetProvider,
-  blockExplorer,
-  price,
-  readContracts,
-  contractName,
-  children,
-}) {
+const TransactionListItem = function ({ item, mainnetProvider, abiDecoder, blockExplorer, price, children }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const showModal = () => {
@@ -27,7 +19,21 @@ const TransactionListItem = function ({
   console.log("🔥🔥🔥🔥", item);
   let txnData;
   try {
-    txnData = item; //readContracts[contractName].interface.parseTransaction(item);
+    if (abiDecoder) {
+      if (item.data && item.data !== "0x") {
+        txnData = abiDecoder.decodeMethod(item.data) || {};
+        txnData.sighash = item.hash;
+        txnData.succeeded = item.succeeded;
+      }
+    }
+    if (item.data === "0x") {
+      txnData = {
+        name: "transferFunds",
+        sighash: item.hash,
+        succeeded: item.succeeded,
+        params: [{ name: "to", value: item.to, type: "address" }],
+      };
+    }
   } catch (error) {
     console.log("ERROR", error);
   }
@@ -56,13 +62,13 @@ const TransactionListItem = function ({
           >
             <p>
               <b>Event Name :&nbsp;</b>
-              {txnData.functionFragment}&nbsp;
-            </p>
-            <p>
-              <b>Addressed to :&nbsp;</b>
-              {txnData.args}
+              {txnData.name}&nbsp;
             </p>
           </div>
+          <span>
+            {item.succeeded === false ? "❌" : undefined}
+            {item.succeeded === true ? "👍" : undefined}
+          </span>
           <span>
             <Blockie size={4} scale={8} address={item.hash} /> {item.hash.substr(0, 6)}
           </span>

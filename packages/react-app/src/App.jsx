@@ -8,6 +8,7 @@ import "./App.css";
 import { useUserProvider, useStaticJsonRPC } from "./hooks";
 import { useEventListener } from "./hooks";
 import P2PTest from "./views/P2PTest";
+import abiDecoder from "abi-decoder";
 import {
   Account,
   Contract,
@@ -46,7 +47,6 @@ const { ethers } = require("ethers");
     You can also bring in contract artifacts in `constants.js`
     (and then use the `useExternalContractLoader()` hook!)
 */
-
 const poolServerUrl = "https://backend.multisig.holdings:49832/";
 
 /// 📡 What chain are your contracts deployed to?
@@ -129,6 +129,16 @@ function App(props) {
   const selectedChainId =
     userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId;
 
+  useEffect(() => {
+    const contracts = deployedContracts[selectedChainId]?.[targetNetwork.name]?.contracts;
+    const abis = Object.values(contracts || {}).map(c => c.abi);
+    if (abis) {
+      for (const abi of abis) {
+        abiDecoder.addABI(abi);
+      }
+    }
+  }, [selectedChainId, targetNetwork.name]);
+
   // For more hooks, check out 🔗eth-hooks at: https://www.npmjs.com/package/eth-hooks
 
   // The transactor wraps transactions and provides notificiations
@@ -140,7 +150,7 @@ function App(props) {
   // Just plug in different 🛰 providers to get your balance on different chains:
   const yourMainnetBalance = useBalance(mainnetProvider, address);
 
-  // const contractConfig = useContractConfig();
+  // const contractConfig = useConethertractConfig();
 
   const contractConfig = { deployedContracts: deployedContracts || {}, externalContracts: externalContracts || {} };
 
@@ -286,6 +296,7 @@ function App(props) {
               price={price}
               mainnetProvider={mainnetProvider}
               blockExplorer={blockExplorer}
+              abiDecoder={abiDecoder}
             />
           </Route>
 
@@ -334,6 +345,7 @@ function App(props) {
               poolServerUrl={poolServerUrl}
               contractName={contractName}
               address={address}
+              abiDecoder={abiDecoder}
               userProvider={userProvider}
               mainnetProvider={mainnetProvider}
               localProvider={localProvider}
